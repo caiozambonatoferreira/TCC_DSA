@@ -120,7 +120,7 @@ def scrape_imdb(url):
 
             if image and description and link:
                 articles.append({
-                    "title": description,
+                    "title": description.split(',', 1)[0],
                     "url": link,
                     "image": image,
                 })
