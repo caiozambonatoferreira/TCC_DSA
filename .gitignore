@@ -1,0 +1,36 @@
+# Root-level ignores
+venv/
+*.pyc
+*.pyo
+__pycache__/
+*.sqlite3
+.DS_Store
+.env
+
+# Backend (Django Rest Framework)
+backend/__pycache__/
+backend/*.pyc
+backend/*.pyo
+backend/*.log
+backend/staticfiles/
+backend/media/
+backend/.env
+
+# Frontend (Vue.js)
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.cache
+frontend/yarn-error.log
+frontend/npm-debug.log
+frontend/*.log
+
+# IDE and Editor Specific
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# System Files
+Thumbs.db
