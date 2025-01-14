@@ -1,10 +1,11 @@
 from django.shortcuts import render
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-#from googletrans import Translator
-#from collections import Counter
+from translate import Translator
+from collections import Counter
 from bs4 import BeautifulSoup
 import requests
+import re
 
 sites = {
     "news": {
@@ -23,6 +24,15 @@ sites = {
         "spanish": "https://www.marca.com",
     },
 }
+
+STOPWORDS = set([
+    "a", "an", "the", "and", "or", "of", "in", "on", "to", "for", "is", "it", "at", "with", "by",
+    "as", "that", "this", "was", "are", "nel", "sua", "trieste", "be", "from", "not", "but", "il", "la", "i", "le", "lo", 
+    "gli", "di", "e", "o", "con", "per", "non", "che", "un", "una", "uno", "al", "del", "alla", 
+    "della", "en", "y", "los", "las", "de", "jenkins", "walter", "oscar", "el", "una", "un", "por", "se", "su", "como", "2024", "2025"
+])
+
+STOPWORDS.update(str(i) for i in range(10000))
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
@@ -47,15 +57,12 @@ def scrape_cineuropa(url):
         soup = BeautifulSoup(response.content, 'html.parser')
         articles = []
 
-        for article in soup.find_all('div', class_='article clear-block news', limit=10):
+        for article in soup.find_all('div', class_='article clear-block news', limit=9):
             title_tag = article.find('h2', class_='clear-float').find('a')
             title = title_tag.get_text(strip=False) if title_tag else None
-            print('Title', title)
             link = title_tag['href'] if title_tag and title_tag.has_attr('href') else None
-
             image_tag = article.find('div', class_='box-foto-article').find('img', src=True)
             image = image_tag['src'] if image_tag else None
-            print('image', image)
 
             if title and link:
                 articles.append({
@@ -76,7 +83,7 @@ def scrape_fotogramas(url):
         soup = BeautifulSoup(response.content, 'html.parser')
         articles = []
 
-        for article in soup.find_all('a', class_='css-kxu6hh', limit=10):
+        for article in soup.find_all('a', class_='css-kxu6hh', limit=9):
             link = article['href'] if article.has_attr('href') else None
 
             image_tag = article.find('img', src=True)
@@ -105,7 +112,7 @@ def scrape_imdb(url):
         soup = BeautifulSoup(response.content, 'html.parser')
         articles = []
 
-        for container in soup.find_all('div', class_='sc-52810589-5', limit=10):
+        for container in soup.find_all('div', class_='sc-52810589-5', limit=9):
 
             image_tag = container.find('img', class_='ipc-image')
             image = image_tag['src'] if image_tag else None
@@ -137,7 +144,7 @@ def scrape_repubblica(url):
         soup = BeautifulSoup(response.content, 'html.parser')
         articles = []
 
-        for article in soup.find_all('article', class_='entry', limit=10):
+        for article in soup.find_all('article', class_='entry', limit=9):
             title_tag = article.find('h2', class_='entry__title')
             title = title_tag.get_text(strip=True) if title_tag else None
 
@@ -170,7 +177,7 @@ def scrape_repubblica_sports(url):
         soup = BeautifulSoup(response.content, 'html.parser')
         articles = []
 
-        for article in soup.find_all('article', class_='entry', limit=10):
+        for article in soup.find_all('article', class_='entry', limit=9):
             title_tag = article.find('h2', class_='entry__title')
             title = title_tag.get_text(strip=True) if title_tag else None
 
@@ -208,7 +215,7 @@ def scrape_elpais_articles(url):
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        for article in soup.select("article.c.c--m.c-d", limit=10):
+        for article in soup.select("article.c.c--m.c-d", limit=9):
             try:
                 url = article.find("a", class_="c_m_c")["href"] if article.find("a", class_="c_m_c") else None
                 title_element = article.find("h2", class_="c_t")
@@ -235,9 +242,8 @@ def scrape_bbc(url):
         response = session.get(url)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
-        print('SOUP', soup)
 
-        for article in soup.find_all('div', {'data-testid': 'edinburgh-card'}, limit=10):
+        for article in soup.find_all('div', {'data-testid': 'edinburgh-card'}, limit=9):
             title_tag = article.find('h2', {'data-testid': 'card-headline'})
             title = title_tag.get_text(strip=True) if title_tag else None
             
@@ -266,7 +272,7 @@ def scrape_bbc_sports(url):
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        for item in soup.find_all('li', class_='ssrcss-13h7haz-ListItem', limit=10):
+        for item in soup.find_all('li', class_='ssrcss-13h7haz-ListItem', limit=9):
             title_tag = item.find('p', class_='ssrcss-1b1mki6-PromoHeadline')
             title = title_tag.get_text(strip=True) if title_tag else None
 
@@ -295,7 +301,7 @@ def scrape_marca_articles(url):
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser')
 
-        for article in soup.find_all('article', class_='ue-c-cover-content', limit=10):
+        for article in soup.find_all('article', class_='ue-c-cover-content', limit=9):
             title_tag = article.find('h2', class_='ue-c-cover-content__headline')
             title = title_tag.get_text(strip=True) if title_tag else None
 
@@ -342,6 +348,35 @@ scraping_functions = {
     }
 }
 
+def extract_keywords(articles):
+    word_counter = Counter()
+
+    for article in articles:
+        
+        words = re.findall(r'\b\w+\b', article["title"].lower())
+        
+        filtered_words = (word for word in words if word not in STOPWORDS and len(word) > 2)
+        
+        word_counter.update(filtered_words)
+
+    return [word for word, _ in word_counter.most_common(9)]
+
+def translate_keywords(keywords):
+    translator= Translator(to_lang="pt")
+    translations = []
+
+    try:
+        for keyword in keywords:
+            translation = translator.translate(keyword)
+            translations.append({"word": keyword, "translation": translation})
+    except Exception as e:
+        print(f"Error translating keywords: {e}")
+
+        for keyword in keywords:
+            translations.append({"word": keyword, "translation": keyword})
+    
+    return translations
+
 @api_view(['GET'])
 def get_articles(request):
     language = request.GET.get('language').lower()
@@ -354,4 +389,15 @@ def get_articles(request):
     scrape_function = scraping_functions[interest][language]
     articles = scrape_function(url)
 
-    return Response(articles)
+    if isinstance(articles, dict) and "error" in articles:
+        return Response({"error": articles["error"]}, status=500)
+
+    keywords = extract_keywords(articles)
+    flashcards = translate_keywords(keywords)
+
+    response_data = {
+       "articles": articles,
+       "flashcards": flashcards
+    }
+
+    return Response(response_data)
