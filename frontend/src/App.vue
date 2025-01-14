@@ -1,7 +1,6 @@
 <template>
   <div id="app">
-
-    <b-steps size="is-small" :has-navigation="false">
+    <b-steps size="is-small" animated v-model="activeStep" :has-navigation="false">
       <b-step-item label="Idioma" icon="account-key"></b-step-item>
       <b-step-item label="Interesses" icon="account"></b-step-item>
       <b-step-item label="Conteúdo" icon="account-plus"></b-step-item>
@@ -76,13 +75,25 @@ export default {
     return {
       language: null,
       interest: null,
-      showArticles: false
+      showArticles: false,
+      currentStep: 0
+    }
+  },
+
+  computed: {
+    activeStep() {
+      return this.currentStep
     }
   },
 
   watch: {
+    language() {
+      this.currentStep++
+    },
+    
     interest() {
       if(this.language && this.interest) {
+        this.currentStep++
         this.showArticles = true
       }
     }
