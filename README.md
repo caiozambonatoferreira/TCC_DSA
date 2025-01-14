@@ -35,6 +35,9 @@ Ensure you have the following installed on your machine:
 ### 4. Apply all the migrations
 
 `python manage.py makemigrations`
+
+And then 
+
 `python manage.py migrate`
 
 ### 5. Try running the API with the following command:
