@@ -1,6 +1,6 @@
 Ensure you have the following installed on your machine:
 
-- Python 3.8+
+- Python 3.7+
 - Node.js 14+ and npm/yarn
 - Git
 
