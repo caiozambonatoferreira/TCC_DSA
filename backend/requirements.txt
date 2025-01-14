@@ -3,4 +3,3 @@ djangorestframework
 beautifulsoup4
 requests
 translate
-gunicorn
