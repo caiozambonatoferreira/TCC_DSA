@@ -53,7 +53,6 @@ export default {
     align-items: center;
     box-sizing: border-box;
     font-size: 38px;
-    white-space: nowrap;
 }
 
 .flip-card-front {
