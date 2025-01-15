@@ -113,14 +113,27 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  padding: 100px;
+  padding: 10px;
   background: hsl(221 14% 96% / 1);
   width: 100%;
   min-height: 100vh;
 }
 
+@media (min-width: 1024px) {
+  #app {
+    padding: 100px;
+  }
+}
+
 .justify-center .field.has-addons {
   justify-content: center;
+  flex-direction: column;
+}
+
+@media (min-width: 1024px) {
+  .justify-center .field.has-addons {
+    flex-direction: row;
+  }
 }
 
 .country-text {

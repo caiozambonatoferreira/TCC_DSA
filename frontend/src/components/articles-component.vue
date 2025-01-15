@@ -6,7 +6,7 @@
 
         <div v-else>
             <b-tabs v-model="activeTab">
-                <b-tab-item label="Articles">
+                <b-tab-item label="Artigos">
                     <div class="cards" v-if="articles.length">
                         <div class="card" v-for="(article, index) in articles" :key="index">
                             <div class="card-image">
@@ -85,9 +85,15 @@ export default {
         max-width: 1280px;
         margin: 0 auto;
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: 1fr;
         grid-gap: 3rem;
         padding: 10px;
+    }
+
+    @media (min-width: 1024px) {
+        .cards {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
     }
 
     .card .image img{
